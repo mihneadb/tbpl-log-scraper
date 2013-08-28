@@ -1,14 +1,12 @@
 # log-scraper
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure tool for downloading tbpl [logs](http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux-debug/).
 
 ## Usage
 
-FIXME
+  lein run <path to download-dir>
 
-## License
+Or you can compile it and just run it as a java app.
 
-Copyright © 2013 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+  lein uberjar
+  java -jar target/log-scraper-0.1.0-SNAPSHOT-standalone.jar <path to download-dir>

@@ -49,6 +49,7 @@
 
 (defn scrape-builder-logs [builder-dir download-dir]
   "Downloads all logs from the builder-dir to the given directory."
+  (println "Started downloading" (basename builder-dir))
   (let [local-dir (str download-dir "/" (basename builder-dir))
         process-bdir (fn [bdir]
                       (let [local-build-dir (str local-dir "/" (basename bdir))]

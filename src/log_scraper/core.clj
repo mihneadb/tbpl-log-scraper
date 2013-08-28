@@ -64,6 +64,8 @@
     (println "Need to pass in a path for download dir.")
     (do
       (.mkdir (java.io.File. (first args)))
-      (println "Starting..")
-      (scrape-builder-logs (first inbound-dirs) (first args))
+      (println "Downloading logs from")
+      (dorun (map #(println "  " (basename %)) inbound-dirs))
+      (dorun (pmap #(scrape-builder-logs % (first args)) inbound-dirs))
       (println "Done."))))
+

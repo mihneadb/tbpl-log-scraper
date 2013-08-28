@@ -55,7 +55,8 @@
                       (let [local-build-dir (str local-dir "/" (basename bdir))]
                         (.mkdir (java.io.File. local-build-dir))
                         (doseq [log (extract-logs bdir)]
-                          (download-url-to log (str local-build-dir "/" (basename log))))))]
+                          (when-not (.exists (java.io.File. (str local-build-dir "/" (basename log))))
+                            (download-url-to log (str local-build-dir "/" (basename log)))))))]
     (.mkdir (java.io.File. local-dir))
     (dorun (pmap process-bdir (extract-build-dirs builder-dir)))))
 

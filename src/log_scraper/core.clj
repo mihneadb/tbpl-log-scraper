@@ -58,7 +58,8 @@
                           (when-not (.exists (java.io.File. (str local-build-dir "/" (basename log))))
                             (download-url-to log (str local-build-dir "/" (basename log)))))))]
     (.mkdir (java.io.File. local-dir))
-    (dorun (pmap process-bdir (extract-build-dirs builder-dir)))))
+    (dorun (pmap process-bdir (extract-build-dirs builder-dir))))
+  (println "Finished downloading" (basename builder-dir)))
 
 
 (defn -main [& args]

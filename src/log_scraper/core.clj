@@ -63,10 +63,12 @@
 
 
 (defn -main [& args]
-  (if (not= 1 (count args))
+  (if (< (count args) 1)
     (println "Need to pass in a path for download dir.")
     (do
       (.mkdir (java.io.File. (first args)))
+      (when (= 2 (count args))
+        (def inbound-dirs (list (nth inbound-dirs (bigdec (second args))))))
       (println "Downloading logs from")
       (dorun (map #(println "  " (basename %)) inbound-dirs))
       (dorun (pmap #(scrape-builder-logs % (first args)) inbound-dirs))

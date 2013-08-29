@@ -73,6 +73,7 @@
       (download-log log local-log-dir))))
 
 (defn print-progress [crt total]
+  "Prints a progress string always on the same line."
   (printf "\tDone: %d/%d\r" crt total)
   (flush))
 

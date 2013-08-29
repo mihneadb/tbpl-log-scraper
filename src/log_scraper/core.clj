@@ -61,6 +61,9 @@
     (dorun (pmap process-bdir (extract-build-dirs builder-dir))))
   (println "Finished downloading" (basename builder-dir)))
 
+(defn remove-last-char [s]
+  (.substring s 0 (dec (count s))))
+
 
 (defn -main [& args]
   (if (< (count args) 1)
@@ -68,7 +71,7 @@
     (do
       (.mkdir (java.io.File. (first args)))
       (when (= 2 (count args))
-        (def inbound-dirs (list (nth inbound-dirs (bigdec (second args))))))
+        (def inbound-dirs (filter #(.endsWith (remove-last-char %) (second args)) inbound-dirs)))
       (println "Downloading logs from")
       (dorun (map #(println "  " (basename %)) inbound-dirs))
       (dorun (pmap #(scrape-builder-logs % (first args)) inbound-dirs))

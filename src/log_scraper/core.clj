@@ -72,12 +72,22 @@
     (doseq [log (extract-logs bdir)]
       (download-log log local-log-dir))))
 
+(defn print-progress [crt total]
+  (printf "\tDone: %d/%d\r" crt total)
+  (flush))
+
 (defn scrape-slave-logs [slave-dir download-dir]
   "Downloads all logs from the slave-dir to the given directory."
-  (let [local-slave-dir (slash-join download-dir (basename slave-dir))]
+  (println "Scraping" slave-dir)
+  (let [local-slave-dir (slash-join download-dir (basename slave-dir))
+        build-dirs (extract-build-dirs slave-dir)
+        total-count (count build-dirs)
+        done (atom 0)]
     (mkdir local-slave-dir)
-    (doseq [bdir (extract-build-dirs slave-dir)]
-      (download-build-dir bdir local-slave-dir))))
+    (doseq [bdir build-dirs]
+      (download-build-dir bdir local-slave-dir)
+      (swap! done inc)
+      (print-progress @done total-count))))
 
 
 (defn -main [& args]

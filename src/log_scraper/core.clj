@@ -32,37 +32,52 @@
     (io/copy in (io/file save-path))))
 
 (def inbound-dirs
-  "seq of inbound builder directories available at base-url"
+  "seq of inbound slave directories available at base-url"
   (map #(str base-url %) (map extract-href (filter is-inbound? (extract-links (fetch-url base-url))))))
 
 (defn extract-build-dirs [dir]
-  "Seq with urls of the build directories available in a builder dir."
+  "Seq with urls of the build directories available in a slave dir."
   (butlast (map #(str dir (extract-href %)) (rest (extract-links (fetch-url dir))))))
 
 (defn extract-logs [bdir]
   "Seq of log urls for a given build dir."
   (map #(str bdir %) (map extract-href (filter is-log? (extract-links (fetch-url bdir))))))
 
+(defn remove-last-char [s]
+  (.substring s 0 (dec (count s))))
+
 (defn basename [url]
   "/hello/how/are/you -> you"
   (last (string/split url #"/")))
 
-(defn scrape-builder-logs [builder-dir download-dir]
-  "Downloads all logs from the builder-dir to the given directory."
-  (println "Started downloading" (basename builder-dir))
-  (let [local-dir (str download-dir "/" (basename builder-dir))
-        process-bdir (fn [bdir]
-                      (let [local-build-dir (str local-dir "/" (basename bdir))]
-                        (.mkdir (java.io.File. local-build-dir))
-                        (doseq [log (extract-logs bdir)]
-                          (when-not (.exists (java.io.File. (str local-build-dir "/" (basename log))))
-                            (download-url-to log (str local-build-dir "/" (basename log)))))))]
-    (.mkdir (java.io.File. local-dir))
-    (dorun (pmap process-bdir (extract-build-dirs builder-dir))))
-  (println "Finished downloading" (basename builder-dir)))
+(defn slash-join [& args]
+  (string/join "/" args))
 
-(defn remove-last-char [s]
-  (.substring s 0 (dec (count s))))
+(defn mkdir [path]
+  (.mkdir (java.io.File. path)))
+
+(defn exists? [path]
+  (.exists (java.io.File. path)))
+
+(defn download-log [log local-log-dir]
+  "Downloads the given log to local-log dir if it doesn't already exist there"
+  (let [local-log-file (slash-join local-log-dir (basename log))]
+    (when-not (exists? local-log-file)
+      (download-url-to log local-log-file))))
+
+(defn download-build-dir [bdir local-slave-dir]
+  "Downloads a build dir (like mozilla-inbound-win32/1374544128) inside local-slave-dir"
+  (let [local-log-dir (slash-join local-slave-dir (basename bdir))]
+    (mkdir local-log-dir)
+    (doseq [log (extract-logs bdir)]
+      (download-log log local-log-dir))))
+
+(defn scrape-slave-logs [slave-dir download-dir]
+  "Downloads all logs from the slave-dir to the given directory."
+  (let [local-slave-dir (slash-join download-dir (basename slave-dir))]
+    (mkdir local-slave-dir)
+    (doseq [bdir (extract-build-dirs slave-dir)]
+      (download-build-dir bdir local-slave-dir))))
 
 
 (defn -main [& args]
@@ -74,6 +89,5 @@
         (def inbound-dirs (filter #(.endsWith (remove-last-char %) (second args)) inbound-dirs)))
       (println "Downloading logs from")
       (dorun (map #(println "  " (basename %)) inbound-dirs))
-      (dorun (pmap #(scrape-builder-logs % (first args)) inbound-dirs))
+      (dorun (pmap #(scrape-slave-logs % (first args)) inbound-dirs))
       (println "Done."))))
-
